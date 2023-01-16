@@ -218,7 +218,7 @@ while True:
                             player.day = 1
                             player.fin = 1
                             player.population = 50
-                            player.food = 50
+                            player.food = 100
                             player.peasants = 0
                             player.workers = 0
                             player.recruiter = 0
