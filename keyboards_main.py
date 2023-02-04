@@ -3,12 +3,12 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 def new_keyboard(list_1):
     work_board = VkKeyboard(one_time=False)
-    work_board.add_button("Меню", color=VkKeyboardColor.PRIMARY)
-    work_board.add_line()
     lines = 1
     counter = 0
     for i in list_1:
         work_board.add_button(i, color=VkKeyboardColor.PRIMARY)
+        if i == 'Меню':
+            work_board.add_line()
         if counter < 4:
             counter += 1
         else:

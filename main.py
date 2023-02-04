@@ -1,64 +1,15 @@
-import datetime
 import vk_api
 from random import randint
 import keyboards_main
-import mysql.connector
 import time
+import quests_section
+import sql_connect
 
 start_time = time.time()
 token = "vk1.a.xJtuB7m06aJ0NUxP76zraFp_CKdCAlFGi_QozpaM3-7oa9lqoJ7jjFQ6DALQmbCCl3MFq7Twz_SwjX-AWisGcZ5spY0GEvP4E0efgDNl7XaNfwURZ8kdWALjoYkwlpFMwr_p8_Qvtr1ruinz4BR4J6O3dthRR0U0d_0mGzH-20BKIZ-BzXU3VIShwuUJUfx3"
 vk = vk_api.VkApi(token=token)
 vk._auth_token()
 b = 0
-
-
-def db_connection_insert(string):
-    try:
-        connection = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            passwd='12451245',
-            database='fantasy'
-        )
-        with connection.cursor() as mycursor:
-            mycursor.execute(string)
-            connection.commit()
-            print('данные успешно записаны')
-    except Exception as ex:
-        print('Ошибка ', ex)
-
-
-def db_connection_select(string):
-    try:
-        connection = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            passwd='12451245',
-            database='fantasy'
-        )
-        with connection.cursor() as mycursor:
-            mycursor.execute(string)
-            result = mycursor.fetchall()
-            for x in result:
-                return x
-    except Exception as ex:
-        print('Ошибка ', ex)
-
-
-def db_connection_select_tuple(string):
-    try:
-        connection = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            passwd='12451245',
-            database='fantasy'
-        )
-        with connection.cursor() as mycursor:
-            mycursor.execute(string)
-            result = mycursor.fetchall()
-            return result
-    except Exception as ex:
-        print('Ошибка ', ex)
 
 
 def writing(print_text, us_id, k_b):
@@ -82,33 +33,37 @@ def writing_only_text(print_text, us_id):
 
 
 def searching_in_db(vk_id):
-    return db_connection_select(f'SELECT * FROM users WHERE vk_id = {vk_id} LIMIT 1;')
+    return sql_connect.db_connection_select(f'SELECT * FROM users WHERE vk_id = {vk_id} LIMIT 1;')
 
 
 def return_ammunition_text(us_id, vk_id):
     generated_string = ''
-    for line in db_connection_select_tuple(f'SELECT durability_left, (SELECT deffence FROM ammunition WHERE id = '
-                                           f'ammunition_id), (SELECT attack FROM ammunition WHERE id = '
-                                           f'ammunition_id), (SELECT durability FROM ammunition WHERE id = '
-                                           f'ammunition_id), (SELECT name FROM ammunition WHERE id = ammunition_id) '
-                                           f'FROM ammunition_users WHERE user_id = {us_id};'):
-        var_string = f'{line[4]}: \nатака = {line[2]}\nзащита = {line[1]}\nПрочность = {line[0]}/{line[3]}\n\n'
+    for work_line in sql_connect.db_connection_select_tuple(f'SELECT durability_left, (SELECT deffence FROM ammunition '
+                                                            f'WHERE id = ammunition_id), (SELECT attack FROM '
+                                                            f'ammunition WHERE id = ammunition_id), '
+                                                            f'(SELECT durability FROM ammunition WHERE id = '
+                                                            f'ammunition_id), (SELECT name FROM ammunition WHERE id = '
+                                                            f'ammunition_id) FROM ammunition_users WHERE user_id = '
+                                                            f'{us_id};'):
+        var_string = f'{work_line[4]}: \nатака = {work_line[2]}\nзащита = {work_line[1]}\nПрочность = {work_line[0]}/' \
+                     f'{work_line[3]}\n\n'
         generated_string += var_string
     writing('В инвентаре у игрока лежат следующие артефакты:\n\n' + generated_string, vk_id, keyboards_main.keyboard_4)
 
 
 def shop(us_id, vk_id):
-    if db_connection_select(f'SELECT id FROM shop WHERE location_id = (SELECT location_id FROM users WHERE id = '
-                            f'{us_id})') is not None:
+    if sql_connect.db_connection_select(f'SELECT id FROM shop WHERE location_id = (SELECT location_id FROM users '
+                                        f'WHERE id = {us_id})') is not None:
         player.part = 'shop'
         generated_string = ''
-        kb_list = []
+        kb_list = ['Меню']
         for line_1 in shop_request(us_id):
-            var_string = f'{line_1[0]}: \nатака = {line_1[1]} \nзащита = {line_1[2]}\nПрочность: {line_1[3]}\nЦена: {line_1[4]}\n\n'
+            var_string = f'{line_1[0]}: \nатака = {line_1[1]} \nзащита = {line_1[2]}\nПрочность: {line_1[3]}\nЦена: ' \
+                         f'{line_1[4]}\n\n'
             generated_string += var_string
             kb_list.append(line_1[0])
         writing("Содержимое первой страницы магазина:\n\n" + generated_string,
-                user_id, keyboards_main.new_keyboard(kb_list))
+                vk_id, keyboards_main.new_keyboard(kb_list))
 
     else:
         writing('Некорректное значение, выбери пункт меню.', user_id,
@@ -116,21 +71,22 @@ def shop(us_id, vk_id):
 
 
 def buying_ammunition(us_id, work_text, vk_id):
-    working_price = db_connection_select(f"SELECT price FROM ammunition WHERE name = '{work_text}';")
+    working_price = sql_connect.db_connection_select(f"SELECT price FROM ammunition WHERE name = '{work_text}';")
     if player.money >= working_price[0]:
-        db_connection_insert(f"INSERT INTO ammunition_users (user_id, ammunition_id, durability_left) VALUES ({us_id}, "
-                             f"(SELECT id FROM ammunition WHERE name = '{work_text}'), (SELECT durability FROM "
-                             f"ammunition WHERE id = (SELECT id FROM ammunition WHERE name = '{work_text}')));")
+        sql_connect.db_connection_insert(f"INSERT INTO ammunition_users (user_id, ammunition_id, durability_left) "
+                                         f"VALUES ({us_id}, (SELECT id FROM ammunition WHERE name = '{work_text}'), "
+                                         f"(SELECT durability FROM ammunition WHERE id = (SELECT id FROM ammunition "
+                                         f"WHERE name = '{work_text}')));")
         player.money -= working_price[0]
     else:
         writing_only_text('К сожалению у тебя недостаточно средств на приобретение данного артефакта(', vk_id)
 
 
 def shop_request(us_id):
-    return db_connection_select_tuple(f'SELECT name, attack, deffence, durability, price FROM ammunition WHERE id IN '
-                                      f'(SELECT ammunition_id FROM ammunition_shop WHERE shop_id = (SELECT id FROM '
-                                      f'shop WHERE location_id = (SELECT location_id FROM users WHERE id = '
-                                      f'{us_id})));')
+    return sql_connect.db_connection_select_tuple(f'SELECT name, attack, deffence, durability, price FROM ammunition '
+                                                  f'WHERE id IN (SELECT ammunition_id FROM ammunition_shop WHERE '
+                                                  f'shop_id = (SELECT id FROM shop WHERE location_id = (SELECT '
+                                                  f'location_id FROM users WHERE id = {us_id})));')
 
 
 class Player:
@@ -231,9 +187,10 @@ while True:
                                                 keyboards_main.keyboard_1)
                                 elif player.room == 4:
                                     if text == 'Продолжить':
-                                        db_connection_insert(f'INSERT users (name, vk_id, country, race, location_id) '
-                                                             f'VALUES ("{player.name}", {player.vk_id}, "{player.country}",'
-                                                             f'"{player.race}", {player.location});')
+                                        sql_connect.db_connection_insert(f'INSERT users (name, vk_id, country, race, '
+                                                                         f'location_id) VALUES ("{player.name}", '
+                                                                         f'{player.vk_id}, "{player.country}",'
+                                                                         f'"{player.race}", {player.location});')
                                     for i in range(len(list_of_players_id)):
                                         if list_of_players_id[i] == user_id:
                                             list_of_players_id.pop(i)
@@ -281,6 +238,8 @@ while True:
                                         if text == 'Меню':
                                             writing("Основная страница героя, меню", user_id, keyboards_main.keyboard_3)
                                             player.part = 'main'
+                                        elif text == 'Квест':
+                                            quests_section.get_quests_list(user_id, player.id)
                                         else:
                                             writing('Некорректное значение, выбери пункт меню.', user_id,
                                                     keyboards_main.keyboard_5)
@@ -288,10 +247,10 @@ while True:
             var_1 = 0
             for i in range(len(players)):
                 if time.time() - players[i - var_1].mem_time >= 30:
-                    db_connection_insert(f'UPDATE users SET level_ = {players[i - var_1].level}, location_id = '
-                                         f'{players[i - var_1].location_id}, experience = '
-                                         f'{players[i - var_1].experience}, money = {players[i - var_1].money} '
-                                         f'WHERE id = {players[i - var_1].id};')
+                    sql_connect.db_connection_insert(f'UPDATE users SET level_ = {players[i - var_1].level}, '
+                                                     f'location_id = {players[i - var_1].location_id}, experience = '
+                                                     f'{players[i - var_1].experience}, money = '
+                                                     f'{players[i - var_1].money} WHERE id = {players[i - var_1].id};')
                     print(f'Удаляем игрока {players[i - var_1].name} из оперативной памяти')
                     list_of_players_id.remove(players[i - var_1].vk_id)
                     players.pop(i - var_1)
