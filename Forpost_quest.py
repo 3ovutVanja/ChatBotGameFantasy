@@ -67,7 +67,7 @@ def writing_only_text(print_text, us_id):
 
 
 def vilage(day_num, us_id, k_b, finish, pop, f_d, peas, work, verb, sold, at):
-    writing(f'День {day_num}\nЗамок Феантул\nГотовность {finish}%\nНаселение: {pop}\n Еда: {f_d}\nКрестьяне: {peas}\n '
+    writing(f'День {day_num}\nЗамок Феантул\nГотовность {finish}%\nНаселение: {pop}\nЕда: {f_d}\nКрестьяне: {peas}\n'
             f'Рабочие: {work}\nВербовщики: {verb}\nСолдаты: {int(sold)}\nВероятность нападения {at}%', us_id, k_b)
 
 
@@ -90,8 +90,8 @@ def line(day_num, fin):
 
 
 def details(us_id):
-    writing_only_text('Необходимо продержаться 15 дней, по истечению которых замок должен быть полностью построен, '
-                      'население не менее 200.\nНаселение форпоста делится на четыре категории.\nКаждый день '
+    writing_only_text('Необходимо продержаться 20 дней, по истечению которых замок должен быть полностью построен, '
+                      'население не менее 500.\nНаселение форпоста делится на четыре категории.\nКаждый день '
                       'вы выбираете, сколько поселенцев должно заниматься '
                       'определенным делом:', us_id)
     writing_only_text('КРЕСТЬЯНЕ - добывают еду для всех обитателей форпоста. Чем '
@@ -139,12 +139,12 @@ def creating_enemy(fight_num, day_num):
         res_type = types[6]
         var_4 = 6
     if var_4 == 0:
-        en_num = int(randint(11, 15) * (1 + (day_num * 0.5)))
+        en_num = int(randint(11, 15) * (1 + (day_num * 0.55)))
         en_at = float(randint(5, 10) / 3 * (1.3 + (day_num * 1.6)))
         en_def = float(randint(3, 5) * (1 + (day_num * 0.5)))
         en_hp = 2
     elif var_4 == 1:
-        en_num = int(randint(4, 8) * (1.4 + (day_num * 0.3)))
+        en_num = int(randint(4, 8) * (1.4 + (day_num * 0.4)))
         en_at = float(randint(5, 9) * (2 + (day_num * 0.4)))
         en_def = float(randint(10, 20) / 1.3 * (1.3 + day_num * 0.7))
         en_hp = 10
@@ -159,12 +159,12 @@ def creating_enemy(fight_num, day_num):
         en_def = float(randint(10, 20) * (4 + day_num * 0.8))
         en_hp = 7
     elif var_4 == 4:
-        en_num = int(randint(10, 18) * (0.7 + (day_num * 0.3)))
-        en_at = float(randint(5, 10) * (1.4 + (day_num * 0.4)))
-        en_def = float(randint(10, 16) * (0.3 + day_num))
+        en_num = int(randint(10, 18) * (0.7 + (day_num * 0.35)))
+        en_at = float(randint(5, 10) * (1.4 + (day_num * 0.6)))
+        en_def = float(randint(10, 16) * (0.3 + (day_num * 0.3)))
         en_hp = 5
     elif var_4 == 5:
-        en_num = int(randint(2, 4) * ((day_num * 0.35) + 3))
+        en_num = int(randint(3, 5) * ((day_num * 0.35) + 3))
         en_at = float(randint(30, 50) * (2 + (day_num * 0.2)))
         en_def = float(randint(20, 40) * (1 + (day_num * 0.2)))
         en_hp = 30
@@ -360,10 +360,10 @@ while True:
                                     writing('Некорректно значение, попробуй ещё раз', user_id, keyboards.keyboard_8)
                             elif player.room == 3:
                                 if text == 'Согласиться':
-                                    writing('- Теперь – к сути задания: за 15 дней вам необходимо возвести замок и '
-                                            'набрать не менее 200 человек. Опасайтесь нападений с диких земель! '
+                                    writing('- Теперь – к сути задания: за 20 дней вам необходимо возвести замок и '
+                                            'набрать не менее 500 человек. Опасайтесь нападений с диких земель! '
                                             'Торговый Союз прислал обоз провианта, хватит ненадолго. Также имеется '
-                                            'банда оборванцев. Для начала – уже не плохо! Ваша задача обеспечит '
+                                            'банда оборванцев. Для начала – уже не плохо! Ваша задача обеспечить '
                                             'добычу пищи, защиту и вербовку новых ополченцев.', user_id,
                                             keyboards.keyboard_0)
                                     player.room = 4
@@ -444,7 +444,7 @@ while True:
                                     player.food += var_3
                                     var_2 = round(int(player.recruiter) / 2)
                                     player.population += var_2
-                                    var_1 = int(player.workers) / 2
+                                    var_1 = int(player.workers) / 3
                                     player.fin += int(var_1)
                                     vilage(player.day, user_id, keyboards.keyboard_14, player.fin,
                                            player.population, player.food, player.peasants, player.workers,
@@ -476,7 +476,7 @@ while True:
                                     else:
                                         writing_only_text(f'Позади еще один тяжелый день. Вы ложитесь спать с '
                                                           f'чувством выполненного долга и мыслями о том, что осталось '
-                                                          f'всего {15 - player.day} суток.\n\nОТЧЕТ:\n\nГотовность '
+                                                          f'всего {20 - player.day} суток.\n\nОТЧЕТ:\n\nГотовность '
                                                           f'замка: '
                                                           f'{int(player.fin)} ({int(var_1)}).\nНаселение: '
                                                           f'{int(player.population)} ({var_2}).\nЕда: {player.food} ('
@@ -485,10 +485,10 @@ while True:
                                                player.population, player.food, player.peasants, player.workers,
                                                player.recruiter, player.soldiers, player.chance)
                                         player.day += 1
-                                        player.chance = int(100 - ((100 - player.chance) / 2))
+                                        player.chance = int(100 - ((100 - player.chance) / 1.5))
                                         if player.day == 2:
                                             player.chance = 50
-                                        if player.population > 200 and player.fin > 100:
+                                        if player.population > 500 and player.fin > 100:
                                             writing_only_text('Строительство наконец окончено, гарнизон набран. Теперь '
                                                               'эта крепость станет оплотом цивилизации на восточной '
                                                               'границе Империи. Вы успешно справились с поставленной '
@@ -496,7 +496,7 @@ while True:
                                                               'выполнение поручения.', user_id)
                                             with open("winners.txt", "a", encoding="utf-8") as co:
                                                 co.write(str(user_id) + '\n')
-                                        elif player.day < 16:
+                                        elif player.day < 21:
                                             player.room = 1
                                         else:
                                             writing_only_text('К сожалению выделенное на работы время подошло к '
@@ -516,20 +516,20 @@ while True:
                                                       f' сражении погибли {int(player.before - player.population)} '
                                                       f'солдат, но атака отбита. Вы ложитесь спать с чувством '
                                                       f'выполненного долга и мыслями о том, что осталось всего '
-                                                      f'{15 - player.day} суток.\n\nОТЧЕТ:\n\nГотовность замка: '
+                                                      f'{20 - player.day} суток.\n\nОТЧЕТ:\n\nГотовность замка: '
                                                       f'{int(player.fin)}.\nНаселение: '
                                                       f'{int(player.population)}.\nЕда: {player.food}.', user_id)
                                     vilage(player.day, user_id, keyboards.keyboard_15, player.fin,
                                            player.population, player.food, player.peasants, player.workers,
                                            player.recruiter, player.soldiers, player.chance)
                                     player.day += 1
-                                    if player.population > 200 and player.fin > 100:
+                                    if player.population > 500 and player.fin > 100:
                                         writing_only_text('Строительство наконец окончено, гарнизон набран. Теперь '
                                                           'эта крепость станет оплотом цивилизации на восточной '
                                                           'границе Империи. Вы успешно справились с поставленной '
                                                           'задачей, можете получить вознаграждание и медаль за '
                                                           'выполнение поручения.', user_id)
-                                    elif player.day < 16:
+                                    elif player.day < 21:
                                         player.room = 1
                                     else:
                                         writing_only_text('К сожалению выделенное на работы время подошло к '

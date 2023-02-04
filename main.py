@@ -85,25 +85,59 @@ def searching_in_db(vk_id):
     return db_connection_select(f'SELECT * FROM users WHERE vk_id = {vk_id} LIMIT 1;')
 
 
-def searching_ammunition_in_bd(us_id):
-    return db_connection_select_tuple(f'SELECT name, attack, deffence FROM ammunition WHERE id IN (SELECT '
-                                      f'ammunition_id FROM ammunition_users WHERE user_id = {us_id});')
-
-
 def return_ammunition_text(us_id, vk_id):
     generated_string = ''
-    for line in searching_ammunition_in_bd(us_id):
-        var_string = f'{line[0]}: атака = {line[1]}, защита = {line[2]}\n'
+    for line in db_connection_select_tuple(f'SELECT durability_left, (SELECT deffence FROM ammunition WHERE id = '
+                                           f'ammunition_id), (SELECT attack FROM ammunition WHERE id = '
+                                           f'ammunition_id), (SELECT durability FROM ammunition WHERE id = '
+                                           f'ammunition_id), (SELECT name FROM ammunition WHERE id = ammunition_id) '
+                                           f'FROM ammunition_users WHERE user_id = {us_id};'):
+        var_string = f'{line[4]}: \nатака = {line[2]}\nзащита = {line[1]}\nПрочность = {line[0]}/{line[3]}\n\n'
         generated_string += var_string
-    writing('В инвентаре у игрока лежат следующее оружие:\n\n' + generated_string, vk_id, keyboards_main.keyboard_4)
+    writing('В инвентаре у игрока лежат следующие артефакты:\n\n' + generated_string, vk_id, keyboards_main.keyboard_4)
+
+
+def shop(us_id, vk_id):
+    if db_connection_select(f'SELECT id FROM shop WHERE location_id = (SELECT location_id FROM users WHERE id = '
+                            f'{us_id})') is not None:
+        player.part = 'shop'
+        generated_string = ''
+        kb_list = []
+        for line_1 in shop_request(us_id):
+            var_string = f'{line_1[0]}: \nатака = {line_1[1]} \nзащита = {line_1[2]}\nПрочность: {line_1[3]}\nЦена: {line_1[4]}\n\n'
+            generated_string += var_string
+            kb_list.append(line_1[0])
+        writing("Содержимое первой страницы магазина:\n\n" + generated_string,
+                user_id, keyboards_main.new_keyboard(kb_list))
+
+    else:
+        writing('Некорректное значение, выбери пункт меню.', user_id,
+                keyboards_main.keyboard_3)
+
+
+def buying_ammunition(us_id, work_text, vk_id):
+    working_price = db_connection_select(f"SELECT price FROM ammunition WHERE name = '{work_text}';")
+    if player.money >= working_price[0]:
+        db_connection_insert(f"INSERT INTO ammunition_users (user_id, ammunition_id, durability_left) VALUES ({us_id}, "
+                             f"(SELECT id FROM ammunition WHERE name = '{work_text}'), (SELECT durability FROM "
+                             f"ammunition WHERE id = (SELECT id FROM ammunition WHERE name = '{work_text}')));")
+        player.money -= working_price[0]
+    else:
+        writing_only_text('К сожалению у тебя недостаточно средств на приобретение данного артефакта(', vk_id)
+
+
+def shop_request(us_id):
+    return db_connection_select_tuple(f'SELECT name, attack, deffence, durability, price FROM ammunition WHERE id IN '
+                                      f'(SELECT ammunition_id FROM ammunition_shop WHERE shop_id = (SELECT id FROM '
+                                      f'shop WHERE location_id = (SELECT location_id FROM users WHERE id = '
+                                      f'{us_id})));')
 
 
 class Player:
-
     room = 1
     part = 'main'
 
-    def __init__(self, name, vk_id, player_id, country, level, location_id, race, born, experience, mem_time):
+    def __init__(self, name, vk_id, player_id, country, level, location_id, race, born, experience, money, mem_time):
         self.name = name
         self.vk_id = vk_id
         self.id = player_id
@@ -113,6 +147,7 @@ class Player:
         self.race = race
         self.born = born
         self.experience = experience
+        self.money = money
         self.mem_time = mem_time
 
 
@@ -155,8 +190,9 @@ while True:
                     else:
                         list_of_players_id.append(user_now[2])
                         print(list_of_players_id)
-                        players.append(Player(user_now[1], user_now[2], user_now[0], user_now[3], user_now[6], user_now[7],
-                                              user_now[5], user_now[4], user_now[8], time.time()))
+                        players.append(
+                            Player(user_now[1], user_now[2], user_now[0], user_now[3], user_now[6], user_now[7],
+                                   user_now[5], user_now[4], user_now[8], user_now[9], time.time()))
                         writing("Основная страница героя, меню", user_id, keyboards_main.keyboard_3)
                 elif user_id in list_of_players_id:
                     for player in players:
@@ -179,7 +215,8 @@ while True:
                                         player.room = 3
                                         writing('Выбери расу', user_id, keyboards_main.keyboard_1)
                                     else:
-                                        writing('Некорректное значение, выбери страну.', user_id, keyboards_main.keyboard_0)
+                                        writing('Некорректное значение, выбери страну.', user_id,
+                                                keyboards_main.keyboard_0)
                                 elif player.room == 3:
                                     if text == 'Эльф':
                                         player.race = 'Эльф'
@@ -190,11 +227,12 @@ while True:
                                         player.room = 4
                                         writing('переходим в основную игру', user_id, keyboards_main.keyboard_2)
                                     else:
-                                        writing('Некорректное значение, выбери расу.', user_id, keyboards_main.keyboard_1)
+                                        writing('Некорректное значение, выбери расу.', user_id,
+                                                keyboards_main.keyboard_1)
                                 elif player.room == 4:
                                     if text == 'Продолжить':
                                         db_connection_insert(f'INSERT users (name, vk_id, country, race, location_id) '
-                                                             f'VALUES ("{player.name}", {player.vk_id}, "{player.country}",' 
+                                                             f'VALUES ("{player.name}", {player.vk_id}, "{player.country}",'
                                                              f'"{player.race}", {player.location});')
                                     for i in range(len(list_of_players_id)):
                                         if list_of_players_id[i] == user_id:
@@ -211,9 +249,23 @@ while True:
                                         elif text == 'Инвентарь':
                                             player.part = 'inventory'
                                             writing("Герой зашёл в инвентарь", user_id, keyboards_main.keyboard_4)
+                                        elif text == "Магазин":
+                                            writing_only_text('Герой зашёл в магазин. \n', user_id)
+                                            shop(player.id, user_id)
                                         else:
                                             writing('Некорректное значение, выбери пункт меню.', user_id,
                                                     keyboards_main.keyboard_3)
+                                elif player.part == 'shop':
+                                    if player.room == 1:
+                                        if text == 'Меню':
+                                            writing("Основная страница героя, меню", user_id, keyboards_main.keyboard_3)
+                                            player.part = 'main'
+                                        else:
+                                            for line in shop_request(player.id):
+                                                if text == line[0]:
+                                                    buying_ammunition(player.id, text, user_id)
+                                                    writing_only_text(f'Герой приобрёл {text}', user_id)
+                                                    shop(player.id, user_id)
                                 elif player.part == 'inventory':
                                     if player.room == 1:
                                         if text == 'Меню':
@@ -225,12 +277,21 @@ while True:
                                             writing('Некорректное значение, выбери пункт меню.', user_id,
                                                     keyboards_main.keyboard_4)
                                 elif player.part == 'map':
-                                    pass
-
+                                    if player.room == 1:
+                                        if text == 'Меню':
+                                            writing("Основная страница героя, меню", user_id, keyboards_main.keyboard_3)
+                                            player.part = 'main'
+                                        else:
+                                            writing('Некорректное значение, выбери пункт меню.', user_id,
+                                                    keyboards_main.keyboard_5)
         else:
             var_1 = 0
             for i in range(len(players)):
-                if time.time() - players[i - var_1].mem_time >= 100:
+                if time.time() - players[i - var_1].mem_time >= 30:
+                    db_connection_insert(f'UPDATE users SET level_ = {players[i - var_1].level}, location_id = '
+                                         f'{players[i - var_1].location_id}, experience = '
+                                         f'{players[i - var_1].experience}, money = {players[i - var_1].money} '
+                                         f'WHERE id = {players[i - var_1].id};')
                     print(f'Удаляем игрока {players[i - var_1].name} из оперативной памяти')
                     list_of_players_id.remove(players[i - var_1].vk_id)
                     players.pop(i - var_1)
