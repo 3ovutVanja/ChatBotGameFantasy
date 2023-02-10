@@ -2,11 +2,11 @@ import vk_api
 from random import randint
 import keyboards_main
 import time
-import quests_section
+import methods
 import sql_connect
 
 start_time = time.time()
-token = "vk1.a.xJtuB7m06aJ0NUxP76zraFp_CKdCAlFGi_QozpaM3-7oa9lqoJ7jjFQ6DALQmbCCl3MFq7Twz_SwjX-AWisGcZ5spY0GEvP4E0efgDNl7XaNfwURZ8kdWALjoYkwlpFMwr_p8_Qvtr1ruinz4BR4J6O3dthRR0U0d_0mGzH-20BKIZ-BzXU3VIShwuUJUfx3"
+token = "vk1.a.-1Nd_H3CRuKOQfBtctmLINsMx6CWFAD-WrdhgaZ0Hryr9DXUP7RXFxlspYtt-J05daqNQnKtEoR15u2IEQcmOVPH2gKe8YnFwbzIKtjmKHNyt6sE0Bi_TMet1MvpN82aF6NbiFuI3Iw2xhAXaXMT_aEKvt76egb0jZM20frQhkVgwD85xhk0n9mWJWLv9-c45D_aXHz_n7xYRAGW6kXCxg"
 vk = vk_api.VkApi(token=token)
 vk._auth_token()
 b = 0
@@ -78,6 +78,7 @@ def buying_ammunition(us_id, work_text, vk_id):
                                          f"(SELECT durability FROM ammunition WHERE id = (SELECT id FROM ammunition "
                                          f"WHERE name = '{work_text}')));")
         player.money -= working_price[0]
+        writing_only_text(f'Герой приобрёл {work_text}', vk_id)
     else:
         writing_only_text('К сожалению у тебя недостаточно средств на приобретение данного артефакта(', vk_id)
 
@@ -124,13 +125,11 @@ list_of_players_id = []
 
 while True:
     try:
-        start_time = time.time()
         messages = vk.method("messages.getConversations", {"offset": 0, "count": 20, "filter": "unanswered"})
-        # print("%s секунд на проверку наличия сообщений" % (time.time() - start_time))
+        print("%s секунд на цикл" % (time.time() - start_time))
+        start_time = time.time()
         if messages["count"] >= 1:
             for message in range(messages["count"]):
-                print("%s секунд на отправку сообщения или просто вход в цикл" % (time.time() - start_time))
-                start_time = time.time()
                 text = messages['items'][message]['last_message']['text']
                 user_id = messages['items'][message]['last_message']['from_id']
                 if user_id not in list_of_players_id:
@@ -221,7 +220,7 @@ while True:
                                             for line in shop_request(player.id):
                                                 if text == line[0]:
                                                     buying_ammunition(player.id, text, user_id)
-                                                    writing_only_text(f'Герой приобрёл {text}', user_id)
+
                                                     shop(player.id, user_id)
                                 elif player.part == 'inventory':
                                     if player.room == 1:
@@ -239,14 +238,23 @@ while True:
                                             writing("Основная страница героя, меню", user_id, keyboards_main.keyboard_3)
                                             player.part = 'main'
                                         elif text == 'Квест':
-                                            quests_section.get_quests_list(user_id, player.id)
+                                            ls, w_str = methods.quests_list(user_id, player.id)
+                                            writing(w_str, user_id, keyboards_main.new_keyboard(ls))
+                                            player.part = 'quest'
+                                        else:
+                                            writing('Некорректное значение, выбери пункт меню.', user_id,
+                                                    keyboards_main.keyboard_5)
+                                elif player.part == 'quest':
+                                    if player.room == 1:
+                                        if text == '':
+                                            pass
                                         else:
                                             writing('Некорректное значение, выбери пункт меню.', user_id,
                                                     keyboards_main.keyboard_5)
         else:
             var_1 = 0
             for i in range(len(players)):
-                if time.time() - players[i - var_1].mem_time >= 30:
+                if time.time() - players[i - var_1].mem_time >= 300:
                     sql_connect.db_connection_insert(f'UPDATE users SET level_ = {players[i - var_1].level}, '
                                                      f'location_id = {players[i - var_1].location_id}, experience = '
                                                      f'{players[i - var_1].experience}, money = '

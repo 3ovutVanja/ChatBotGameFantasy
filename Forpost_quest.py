@@ -34,8 +34,7 @@ class Player:
         self.us_id = us_id
 
 
-token = "vk1.a.xJtuB7m06aJ0NUxP76zraFp_CKdCAlFGi_QozpaM3-7oa9lqoJ7jjFQ6DALQmbCCl3MFq7Twz_SwjX-AWisGcZ5spY0GEvP4E0efgDNl7XaNfwURZ8kdWALjoYkwlpFMwr_p8_Qvtr1ruinz4BR4J6O3dthRR0U0d_0mGzH-20BKIZ-BzXU3VIShwuUJUfx3"
-
+token = "vk1.a.-1Nd_H3CRuKOQfBtctmLINsMx6CWFAD-WrdhgaZ0Hryr9DXUP7RXFxlspYtt-J05daqNQnKtEoR15u2IEQcmOVPH2gKe8YnFwbzIKtjmKHNyt6sE0Bi_TMet1MvpN82aF6NbiFuI3Iw2xhAXaXMT_aEKvt76egb0jZM20frQhkVgwD85xhk0n9mWJWLv9-c45D_aXHz_n7xYRAGW6kXCxg"
 vk = vk_api.VkApi(token=token)
 vk._auth_token()
 
