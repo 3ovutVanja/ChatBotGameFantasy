@@ -560,25 +560,17 @@ while True:
                                         writing('Некорректно значение, попробуй ещё раз', user_id, keyboards.keyboard_17)
                                 elif player.move == 2:
                                     if text == 'Атаковать':
-                                        pl_damage = float(player.soldiers) * (
-                                                0.5 + 0.5 * (player.attack / player.enemy_defence))
-                                        en_damage = float(player.enemy_num) * (
-                                                0.5 + 0.5 * (player.enemy_attack / player.defence))
-                                        player.enemy_num = (float(player.enemy_num * player.enemy_hp) - pl_damage) / float(
-                                            player.enemy_hp)
-                                        player.soldiers = (float(player.soldiers * player.hp) - en_damage) / float(
-                                            player.hp)
+                                        pl_damage = float(player.soldiers) * (0.5 + 0.5 * (player.attack / player.enemy_defence))
+                                        en_damage = float(player.enemy_num) * (0.5 + 0.5 * (player.enemy_attack / player.defence))
+                                        player.enemy_num = (float(player.enemy_num * player.enemy_hp) - pl_damage) / float(player.enemy_hp)
+                                        player.soldiers = (float(player.soldiers * player.hp) - en_damage) / float(player.hp)
                                         player.turn += 1
 
                                     elif text == 'Защищать':
-                                        pl_damage = 0.7 * float(player.soldiers) * (
-                                                0.5 + 0.5 * (player.attack / player.enemy_defence))
-                                        en_damage = float(player.enemy_num) * (
-                                                0.5 + 0.5 * (player.enemy_attack / (player.defence * 1.4)))
-                                        player.enemy_num = (float(player.enemy_num * player.enemy_hp) - pl_damage) / float(
-                                            player.enemy_hp)
-                                        player.soldiers = (float(player.soldiers * player.hp) - (en_damage * 0.6)) / float(
-                                            player.hp)
+                                        pl_damage = 0.7 * float(player.soldiers) * (0.5 + 0.5 * (player.attack / player.enemy_defence))
+                                        en_damage = float(player.enemy_num) * (0.5 + 0.5 * (player.enemy_attack / (player.defence * 1.4)))
+                                        player.enemy_num = (float(player.enemy_num * player.enemy_hp) - pl_damage) / float(player.enemy_hp)
+                                        player.soldiers = (float(player.soldiers * player.hp) - (en_damage * 0.6)) / float(player.hp)
                                         var_6 = (en_damage * 0.06)
                                         player.fin = int(float(player.fin) - var_6)
                                         player.turn += 1
